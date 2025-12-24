@@ -1,110 +1,117 @@
-# FHEVM Hardhat Template
+# PrivyPlay
 
-A Hardhat-based template for developing Fully Homomorphic Encryption (FHE) enabled Solidity smart contracts using the
-FHEVM protocol by Zama.
+PrivyPlay is a privacy-first on-chain dice game built on Zama FHEVM. Players swap ETH for encrypted points, pay to roll, submit encrypted guesses, and settle outcomes with on-chain randomness.
 
-## Quick Start
+## Overview
+PrivyPlay keeps player intent and balances confidential while preserving verifiable game fairness. The game logic runs on-chain, using Zama Fully Homomorphic Encryption (FHE) to keep points and guesses encrypted end-to-end.
 
-For detailed instructions see:
-[FHEVM Hardhat Quick Start Tutorial](https://docs.zama.ai/protocol/solidity-guides/getting-started/quick-start-tutorial)
+## Problem It Solves
+Traditional on-chain games expose player behavior and balances, enabling copy-trading, front-running, and unfair targeting. PrivyPlay removes those data leaks by encrypting sensitive state while keeping game logic verifiable.
 
-### Prerequisites
+## Gameplay Flow
+1. Join the game by exchanging ETH for points. Rate: 1 ETH = 1,000,000 encrypted points.
+2. Start a round by spending 100 points. The system rolls a dice using on-chain Zama randomness (1 to 6).
+3. Submit a guess: big is true, small is false. The guess is encrypted on-chain.
+4. The contract compares your encrypted guess with the dice size. Correct guesses earn 1,000 points; incorrect guesses earn 0.
 
-- **Node.js**: Version 20 or higher
-- **npm or yarn/pnpm**: Package manager
+## Key Advantages
+- Private gameplay: guesses and balances are encrypted with FHE.
+- Verifiable fairness: randomness and settlement are on-chain.
+- Minimal trust: no centralized server decides outcomes.
+- Composable: works with standard wallet flows and Sepolia testnet.
+- Clear economics: fixed exchange rate and predictable rewards.
 
-### Installation
+## Tech Stack
+- Smart contracts: Solidity + Hardhat
+- FHE: Zama FHEVM
+- Frontend: React + Vite
+- Web3 stack: RainbowKit, wagmi, viem (read), ethers (write)
+- Relayer: Zama relayer SDK
 
-1. **Install dependencies**
+## Architecture
+- contracts/ contains the encrypted dice game logic.
+- deploy/ holds deployment scripts for local and Sepolia environments.
+- tasks/ provides helper tasks for local operations.
+- test/ verifies correctness of game rules and encryption flows.
+- app/ hosts the React frontend.
 
-   ```bash
-   npm install
-   ```
+## Repository Layout
+- contracts/ PrivyPlay smart contract
+- deploy/ deployment scripts
+- tasks/ Hardhat tasks
+- test/ automated tests
+- app/ React frontend
+- docs/ Zama references used for implementation
 
-2. **Set up environment variables**
+## Requirements
+- Node.js 20+ and npm
+- A funded wallet for Sepolia
 
-   ```bash
-   npx hardhat vars set MNEMONIC
+## Environment Configuration
+Create a root .env file for Hardhat with:
 
-   # Set your Infura API key for network access
-   npx hardhat vars set INFURA_API_KEY
+PRIVATE_KEY=your_private_key
+INFURA_API_KEY=your_infura_api_key
+ETHERSCAN_API_KEY=optional_etherscan_key
 
-   # Optional: Set Etherscan API key for contract verification
-   npx hardhat vars set ETHERSCAN_API_KEY
-   ```
+Notes:
+- Deployment uses a private key only. Do not use a mnemonic.
+- The frontend does not rely on environment variables.
 
-3. **Compile and test**
+## Install
 
-   ```bash
-   npm run compile
-   npm run test
-   ```
+npm install
 
-4. **Deploy to local network**
+## Compile and Test
 
-   ```bash
-   # Start a local FHEVM-ready node
-   npx hardhat node
-   # Deploy to local network
-   npx hardhat deploy --network localhost
-   ```
+npm run compile
+npm run test
 
-5. **Deploy to Sepolia Testnet**
+## Local Development
 
-   ```bash
-   # Deploy to Sepolia
-   npx hardhat deploy --network sepolia
-   # Verify contract on Etherscan
-   npx hardhat verify --network sepolia <CONTRACT_ADDRESS>
-   ```
+# Start a local FHEVM-ready node
+npx hardhat node
 
-6. **Test on Sepolia Testnet**
+# Deploy to the local node
+npx hardhat deploy --network localhost
 
-   ```bash
-   # Once deployed, you can run a simple test on Sepolia.
-   npx hardhat test --network sepolia
-   ```
+## Sepolia Deployment
 
-## 📁 Project Structure
+# Deploy to Sepolia
+npx hardhat deploy --network sepolia
 
-```
-fhevm-hardhat-template/
-├── contracts/           # Smart contract source files
-│   └── FHECounter.sol   # Example FHE counter contract
-├── deploy/              # Deployment scripts
-├── tasks/               # Hardhat custom tasks
-├── test/                # Test files
-├── hardhat.config.ts    # Hardhat configuration
-└── package.json         # Dependencies and scripts
-```
+# Optional verification
+npx hardhat verify --network sepolia <CONTRACT_ADDRESS>
 
-## 📜 Available Scripts
+## Frontend Development
 
-| Script             | Description              |
-| ------------------ | ------------------------ |
-| `npm run compile`  | Compile all contracts    |
-| `npm run test`     | Run all tests            |
-| `npm run coverage` | Generate coverage report |
-| `npm run lint`     | Run linting checks       |
-| `npm run clean`    | Clean build artifacts    |
+cd app
+npm install
+npm run dev
 
-## 📚 Documentation
+Use a wallet connected to Sepolia. The frontend reads the ABI generated by the contracts from deployments/sepolia and uses it for on-chain calls.
 
-- [FHEVM Documentation](https://docs.zama.ai/fhevm)
-- [FHEVM Hardhat Setup Guide](https://docs.zama.ai/protocol/solidity-guides/getting-started/setup)
-- [FHEVM Testing Guide](https://docs.zama.ai/protocol/solidity-guides/development-guide/hardhat/write_test)
-- [FHEVM Hardhat Plugin](https://docs.zama.ai/protocol/solidity-guides/development-guide/hardhat)
+## How Privacy Works
+- Points and guesses are stored as encrypted values.
+- The relayer and FHEVM handle encryption, decryption, and re-encryption without revealing plaintext to the chain.
+- The contract evaluates game rules on encrypted data, keeping results private until exposed by explicit user actions.
 
-## 📄 License
+## Testing Strategy
+- Unit tests validate exchange rates, costs, and reward logic.
+- FHE-specific tests ensure encrypted comparisons match expected outcomes.
+- Task scripts validate deploy-time configuration and permissions.
 
-This project is licensed under the BSD-3-Clause-Clear License. See the [LICENSE](LICENSE) file for details.
+## Limitations
+- FHE operations add computational overhead compared to plaintext contracts.
+- Requires the Zama relayer for encrypted user inputs.
+- Currently focused on a single dice game mode.
 
-## 🆘 Support
+## Future Roadmap
+- Add multi-round sessions with escalating rewards.
+- Expand to additional encrypted mini-games.
+- Add richer analytics that preserve privacy.
+- Improve UX around encrypted approvals and relayer availability.
+- Integrate further randomness sources for resilience.
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/zama-ai/fhevm/issues)
-- **Documentation**: [FHEVM Docs](https://docs.zama.ai)
-- **Community**: [Zama Discord](https://discord.gg/zama)
-
----
-
-**Built with ❤️ by the Zama team**
+## License
+BSD-3-Clause-Clear. See LICENSE.
